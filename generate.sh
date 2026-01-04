@@ -117,7 +117,15 @@ _prompt_data() {
 _rename_annotations() {
     local IFS
 
-    _prompt_data "Rename your module class annotations (default: \`MyPlugin\`): " 0
+    while true; do
+        _prompt_data "Rename your module class annotations (default: \`MyPlugin\`): " 0
+
+        if [[ $DATA =~ ^[a-zA-Z][a-zA-Z0-9_\.]+[a-zA-Z0-9_]$ ]]; then
+            break
+        fi
+
+        error "Invalid module name: \`${DATA}\`" "Try again..."
+    done
 
     while IFS= read -r -d '' file; do
         sed -i "s/MyPlugin/${DATA}/g" "${file}" || return 1
@@ -128,11 +136,14 @@ _rename_annotations() {
 
 _rename_modules() {
     if [[ -d ./lua/my-plugin ]] && _file_readable_writeable "./lua/my-plugin.lua"; then
-        _prompt_data "Rename your Lua module (default: \`my-plugin\`): " 0
-
-        while ! [[ $DATA =~ ^[a-zA-Z_][a-zA-Z0-9_\-]+$ ]]; do
-            error "Invalid module name!" "Use a parseable Lua module name"
+        while true; do
             _prompt_data "Rename your Lua module (default: \`my-plugin\`): " 0
+
+            if [[ $DATA =~ ^[a-zA-Z_][a-zA-Z0-9_\-]+[a-zA-Z0-9_]$ ]]; then
+                break
+            fi
+
+            error "Invalid module name!" "Use a parseable Lua module name"
         done
 
         mv ./lua/my-plugin "./lua/${DATA}" || return 1
@@ -144,7 +155,7 @@ _rename_modules() {
 
 _select_indentation() {
     local IFS
-    local EC=0
+    local ET=""
     DATA=""
 
     while true; do
@@ -153,10 +164,12 @@ _select_indentation() {
             case "$DATA" in
                 [Ss][Pp][Aa][Cc][Ee][Ss])
                     DATA="Spaces"
+                    ET="et"
                     break
                     ;;
                 [Tt][Aa][Bb][Ss])
                     DATA="Tabs"
+                    ET="noet"
                     break
                     ;;
                 *)
@@ -171,11 +184,7 @@ _select_indentation() {
     done
 
     while IFS= read -r -d '' file; do
-        if [[ "$DATA" == "Tabs" ]]; then
-            sed -i "s/\\set\\s/ noet /g" "${file}" || return 1
-        else
-            sed -i "s/\\snoet\\s/ et /g" "${file}" || return 1
-        fi
+        sed -i "s/\\set\\s/ ${ET} /g" "${file}" || return 1
     done < <(find lua -type f -regex '.*\.lua$' -print0)
 
     if _file_rw_not_empty './stylua.toml'; then
@@ -194,15 +203,16 @@ _select_indentation() {
 
     while true; do
         _prompt_data "Select your indentation level (default: 2): " 1
-        if [[ -n "$DATA" ]] && ! [[ $DATA =~ ^[1-9]+[0-9]*$ ]]; then
-            error "Invalid indentation level!" "Try again..."
-            continue
-        elif [[ -n "$DATA" ]] && [[ $DATA =~ ^[1-9]+[0-9]*$ ]]; then
-            break
-        elif [[ -z "$DATA" ]]; then
+        if [[ -n "$DATA" ]]; then
+            if ! [[ $DATA =~ ^[1-9]+[0-9]*$ ]]; then
+                error "Invalid indentation level!" "Try again..."
+                continue
+            fi
+        else
             DATA="2"
-            break
         fi
+
+        break
     done
 
     while IFS= read -r -d '' file; do
