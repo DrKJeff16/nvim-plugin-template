@@ -155,32 +155,10 @@ _yn() {
     return 1
 }
 
-_rename_annotations() {
-    local IFS
-
-    while true; do
-        _prompt_data "Rename your module class annotations (default: \`MyPlugin\`): " 0
-
-        if [[ $DATA =~ ^[a-zA-Z][a-zA-Z0-9_\.]*[a-zA-Z0-9_]$ ]]; then
-            break
-        fi
-
-        error "Invalid module name: \`${DATA}\`" "Try again..."
-    done
-
-    ANNOTATION_PREFIX="${DATA}"
-
-    while IFS= read -r -d '' file; do
-        sed -i "s/MyPlugin/${ANNOTATION_PREFIX}/g" "${file}" || return 1
-    done < <(find lua -type f -regex '.*\.lua$' -print0)
-
-    return 0
-}
-
 _rename_module() {
     if [[ -d ./lua/my-plugin ]] && _file_readable_writeable "./lua/my-plugin.lua"; then
         while true; do
-            _prompt_data "Rename your Lua module (default: \`my-plugin\`): " 0
+            _prompt_data "Rename your Lua module (previously: \`my-plugin\`): " 0
 
             if [[ $DATA =~ ^[a-zA-Z_][a-zA-Z0-9_\-]*[a-zA-Z0-9_]$ ]]; then
                 break
@@ -194,6 +172,28 @@ _rename_module() {
         mv ./lua/my-plugin "./lua/${MODULE_NAME}" || return 1
         mv ./lua/my-plugin.lua "./lua/${MODULE_NAME}.lua" || return 1
     fi
+
+    return 0
+}
+
+_rename_annotations() {
+    local IFS
+
+    while true; do
+        _prompt_data "Rename your module class annotations (previously: \`MyPlugin\`): " 0
+
+        if [[ $DATA =~ ^[a-zA-Z][a-zA-Z0-9_\.]*[a-zA-Z0-9_]$ ]]; then
+            break
+        fi
+
+        error "Invalid module name: \`${DATA}\`" "Try again..."
+    done
+
+    ANNOTATION_PREFIX="${DATA}"
+
+    while IFS= read -r -d '' file; do
+        sed -i "s/MyPlugin/${ANNOTATION_PREFIX}/g" "${file}" || return 1
+    done < <(find lua -type f -regex '.*\.lua$' -print0)
 
     return 0
 }
