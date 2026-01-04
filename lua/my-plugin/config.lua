@@ -19,6 +19,7 @@ function M.setup(opts)
   M.config = vim.tbl_deep_extend('keep', opts or {}, M.get_defaults())
 
   -- ...
+  vim.g.MyPlugin_setup = 1 -- OPTIONAL for `health.lua`, delete if you want to
 end
 
 return M
