@@ -3,7 +3,12 @@
 # Generate your plugin data and tweaks with a simple execution!
 #
 
+# shellcheck disable=SC2207
+
 DATA=""
+MODULE_NAME=""
+ANNOTATION_PREFIX=""
+LINE_SIZE=""
 
 # Print all args to `stderr`
 error() {
@@ -114,6 +119,42 @@ _prompt_data() {
     return 0
 }
 
+# Yes/No prompt
+_yn() {
+    local PROMPT_TXT="$1"
+    local ALLOW_EMPTY="$2"
+    local DEFAULT_CHOICE="$3"
+
+    if [[ $ALLOW_EMPTY -eq 1 ]]; then
+        case $DEFAULT_CHOICE in
+            [Yy] | [Yy][Ee][Ss] | "1") DEFAULT_CHOICE="Y" ;;
+            [Nn] | [Nn][Oo] | "0") DEFAULT_CHOICE="N" ;;
+            *) DEFAULT_CHOICE="Y" ;;
+        esac
+    fi
+
+    while true; do
+        _prompt_data "$PROMPT_TXT" "$ALLOW_EMPTY"
+
+        if [[ -z "$DATA" ]]; then
+            case $DEFAULT_CHOICE in
+                "Y") return 0 ;;
+                "N") return 1 ;;
+            esac
+
+            return 0
+        fi
+
+        case $DATA in
+            [Yy]) return 0 ;;
+            [Nn]) return 1 ;;
+            *) continue ;;
+        esac
+    done
+
+    return 1
+}
+
 _rename_annotations() {
     local IFS
 
@@ -127,14 +168,16 @@ _rename_annotations() {
         error "Invalid module name: \`${DATA}\`" "Try again..."
     done
 
+    ANNOTATION_PREFIX="${DATA}"
+
     while IFS= read -r -d '' file; do
-        sed -i "s/MyPlugin/${DATA}/g" "${file}" || return 1
+        sed -i "s/MyPlugin/${ANNOTATION_PREFIX}/g" "${file}" || return 1
     done < <(find lua -type f -regex '.*\.lua$' -print0)
 
     return 0
 }
 
-_rename_modules() {
+_rename_module() {
     if [[ -d ./lua/my-plugin ]] && _file_readable_writeable "./lua/my-plugin.lua"; then
         while true; do
             _prompt_data "Rename your Lua module (default: \`my-plugin\`): " 0
@@ -146,8 +189,10 @@ _rename_modules() {
             error "Invalid module name!" "Use a parseable Lua module name"
         done
 
-        mv ./lua/my-plugin "./lua/${DATA}" || return 1
-        mv ./lua/my-plugin.lua "./lua/${DATA}.lua" || return 1
+        MODULE_NAME="${DATA}"
+
+        mv ./lua/my-plugin "./lua/${MODULE_NAME}" || return 1
+        mv ./lua/my-plugin.lua "./lua/${MODULE_NAME}.lua" || return 1
     fi
 
     return 0
@@ -236,6 +281,56 @@ _select_indentation() {
     return 0
 }
 
+_select_line_size() {
+    local IFS
+    DATA=""
+
+    while true; do
+        _prompt_data "Select your line size (default: 100): " 1
+
+        if [[ -n "$DATA" ]]; then
+            if [[ $DATA =~ ^[1-9][0-9]*$ ]]; then
+                LINE_SIZE="${DATA}"
+                break
+            fi
+
+            continue
+        fi
+
+        LINE_SIZE="100"
+        break
+    done
+
+    if _file_rw_not_empty './stylua.toml'; then
+        if grep -E '^column_width\s+=\s+.*$' ./stylua.toml &> /dev/null; then
+            sed -i "s/^column_width\\s\\+=\\s.*$/column_width = ${LINE_SIZE}/g" ./stylua.toml || return 1
+        else
+            local F_DATA=()
+            IFS=$'\n' F_DATA=($(cat ./stylua.toml))
+
+            printf "%s\n" "column_width = ${LINE_SIZE}" >| ./stylua.toml
+            printf "%s\n" "${F_DATA[@]}" >> ./stylua.toml
+
+            unset F_DATA
+        fi
+    fi
+
+    return 0
+}
+
+_remove_health_file() {
+    if ! _yn "Remove the checkhealth file? [y/N]: " 1 "N"; then
+        return 0
+    fi
+
+    if _file_readable_writeable "./lua/${MODULE_NAME}/health.lua"; then
+        rm "./lua/${MODULE_NAME}/health.lua"
+        return $?
+    fi
+
+    return 1
+}
+
 _remove_script() {
     if ! _file_readable_writeable ./generate.sh; then
         return 1
@@ -245,10 +340,13 @@ _remove_script() {
     return $?
 }
 
-_rename_modules || die 1 "Couldn't rename module file structure!"
+_rename_module || die 1 "Couldn't rename module file structure!"
 _rename_annotations || die 1 "Couldn't rename module annotations!"
-_select_indentation || die 1 "Unable to set indentation!"
 
+_select_indentation || die 1 "Unable to set indentation!"
+_select_line_size || die 1 "Unable to set StyLua line size!"
+
+_remove_health_file || die 1 "Unable to (not) remove health file!"
 
 _remove_script || die 1
 
