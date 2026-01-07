@@ -1,5 +1,7 @@
 # nvim-plugin-boilerplate
 
+[Codeberg Mirror](https://codeberg.org/DrKJeff16/nvim-plugin-boilerplate) | [GitHub Mirror](https://github.com/DrKJeff16/nvim-plugin-boilerplate)
+
 > [!IMPORTANT]
 > **This was NOT AI-generated!**
 
