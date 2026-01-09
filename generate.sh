@@ -197,6 +197,9 @@ _rename_module() {
     fi
     if [[ -d ./rplugin/python3 ]] && _file_readable_writeable "./rplugin/python3/my-plugin.py"; then
         mv ./rplugin/python3/my-plugin.py "./rplugin/python3/${MODULE_NAME}.py" || return 1
+    fi
+    if [[ -d ./spec ]] && _file_readable_writeable "./spec/my-plugin_spec.lua"; then
+        mv ./spec/my-plugin_spec.lua "./spec/${MODULE_NAME}_spec.lua" || return 1
         return 0
     fi
 
@@ -218,6 +221,17 @@ _rename_annotations() {
     while IFS= read -r -d '' file; do
         sed -i "s/MyPlugin/${ANNOTATION_PREFIX}/g" "${file}" || return 1
     done < <(find lua -type f -regex '.*\.lua$' -print0)
+    while IFS= read -r -d '' file; do
+        sed -i "s/my-plugin/${MODULE_NAME}/g" "${file}" || return 1
+    done < <(find lua -type f -regex '.*\.lua$' -print0)
+
+    while IFS= read -r -d '' file; do
+        sed -i "s/MyPlugin/${ANNOTATION_PREFIX}/g" "${file}" || return 1
+    done < <(find spec -type f -regex '.*\.lua$' -print0)
+    while IFS= read -r -d '' file; do
+        sed -i "s/my-plugin/${MODULE_NAME}/g" "${file}" || return 1
+    done < <(find spec -type f -regex '.*_spec\.lua$' -print0)
+
     while IFS= read -r -d '' file; do
         sed -i "s/MyPlugin/${ANNOTATION_PREFIX}/g" "${file}" || return 1
     done < <(find rplugin -type f -regex '.*\.py$' -print0)
@@ -338,6 +352,19 @@ _select_line_size() {
 }
 
 # Prompt to remove the `checkhealth` file
+_remove_tests() {
+    if ! _yn "Remove tests? [Y/n]: " 1 "Y"; then
+        return 0
+    fi
+    if [[ -d ./spec ]]; then
+        verbose_print "Removing tests..." ""
+        verbose_rm ./spec
+        return $?
+    fi
+    return 1
+}
+
+# Prompt to remove the `checkhealth` file
 _remove_health_file() {
     if ! _yn "Remove the checkhealth file? [y/N]: " 1 "N"; then
         return 0
@@ -409,6 +436,7 @@ _main() {
     _select_indentation || die 1 "Unable to set indentation!"
     _select_line_size || die 1 "Unable to set StyLua line size!"
 
+    _remove_tests || die 1 "Unable to (not) remove tests!"
     _remove_health_file || die 1 "Unable to (not) remove health file!"
     _remove_python_component || die 1 "Unable to (not) remove Python component!"
 
