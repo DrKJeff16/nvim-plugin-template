@@ -143,7 +143,6 @@ _prompt_data() {
                 ;;
         esac
     done
-
     return 0
 }
 
@@ -200,10 +199,8 @@ _rename_module() {
     fi
     if [[ -d ./spec ]] && _file_readable_writeable "./spec/my-plugin_spec.lua"; then
         mv ./spec/my-plugin_spec.lua "./spec/${MODULE_NAME}_spec.lua" || return 1
-        return 0
     fi
-
-    return 1
+    return 0
 }
 
 # Prompt to rename annotation classes
@@ -293,7 +290,6 @@ _select_indentation() {
         else
             DATA="2"
         fi
-
         break
     done
 
@@ -313,7 +309,6 @@ _select_indentation() {
             unset F_DATA
         fi
     fi
-
     return 0
 }
 
@@ -347,21 +342,59 @@ _select_line_size() {
             unset F_DATA
         fi
     fi
-
     return 0
 }
 
-# Prompt to remove the `checkhealth` file
+# Prompt to remove the StyLua config
+_remove_stylua() {
+    if ! _yn "Remove StyLua config? [y/N]: " 1 "N"; then
+        return 0
+    fi
+    if _file_readable_writeable "./stylua.toml"; then
+        verbose_print "Removing \`stylua.toml\`..." ""
+        verbose_rm ./stylua.toml || return 1
+    fi
+    if _file_readable_writeable "./.github/workflows/stylua.yml"; then
+        verbose_print "Removing \`.github/workflows/stylua.yml\`..." ""
+        verbose_rm ./.github/workflows/stylua.yml || return 1
+    fi
+    return 0
+}
+
+# Prompt to remove the selene config
+_remove_selene() {
+    if ! _yn "Remove \`selene\` config? [y/N]: " 1 "N"; then
+        return 0
+    fi
+    if _file_readable_writeable "./selene.toml"; then
+        verbose_print "Removing \`selene.toml\`..." ""
+        verbose_rm ./stylua.toml || return 1
+    fi
+    if _file_readable_writeable "./vim.yml"; then
+        verbose_print "Removing \`vim.yml\`..." ""
+        verbose_rm ./vim.yml || return 1
+    fi
+    if _file_readable_writeable "./.github/workflows/selene.yml"; then
+        verbose_print "Removing \`.github/workflows/selene.yml\`..." ""
+        verbose_rm ./.github/workflows/selene.yml || return 1
+    fi
+    return 0
+}
+
+# Prompt to remove the `spec/` directory
 _remove_tests() {
     if ! _yn "Remove tests? [Y/n]: " 1 "Y"; then
         return 0
     fi
+    if _file_readable_writeable "./.busted"; then
+        verbose_print "Removing busted config..."
+        verbose_rm ./.busted || return 1
+    fi
     if [[ -d ./spec ]]; then
         verbose_print "Removing tests..." ""
-        verbose_rm ./spec
-        return $?
+        verbose_rm ./spec || return 1
     fi
-    return 1
+    return 0
 }
 
 # Prompt to remove the `checkhealth` file
@@ -371,10 +404,9 @@ _remove_health_file() {
     fi
     if _file_readable_writeable "./lua/${MODULE_NAME}/health.lua"; then
         verbose_print "Removing \`health.lua\`..." ""
-        verbose_rm "./lua/${MODULE_NAME}/health.lua"
-        return $?
+        verbose_rm "./lua/${MODULE_NAME}/health.lua" || return 1
     fi
-    return 1
+    return 0
 }
 
 # Prompt to remove the Python component
@@ -384,10 +416,9 @@ _remove_python_component() {
     fi
     if _file_readable_writeable "./rplugin/python3/${MODULE_NAME}.py"; then
         verbose_print "Removimg Python component..." ""
-        verbose_rm ./rplugin
-        return $?
+        verbose_rm ./rplugin || return 1
     fi
-    return 1
+    return 0
 }
 
 # Prompt to remove this script
@@ -401,8 +432,8 @@ _remove_script() {
     fi
 
     verbose_print "Removing this script..." ""
-    verbose_rm ./generate.sh
-    return $?
+    verbose_rm ./generate.sh || return 1
+    return 0
 }
 
 # Rewrite `README.md`
@@ -440,10 +471,12 @@ _main() {
     _remove_health_file || die 1 "Unable to (not) remove health file!"
     _remove_python_component || die 1 "Unable to (not) remove Python component!"
 
+    _remove_stylua || die 1 "Unable to (not) remove StyLua config!"
+    _remove_selene || die 1 "Unable to (not) remove selene config!"
+
     _rewrite_readme || die 1 "Unable to rewrite \`README.md\`!"
 
     _remove_script || die 1 "Unable to (not) remove this script!"
-
     die 0
 }
 
