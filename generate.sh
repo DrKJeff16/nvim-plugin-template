@@ -258,9 +258,11 @@ _select_indentation() {
         esac
     done
 
-    while IFS= read -r -d '' file; do
-        sed -i "s/\\set\\s/ ${ET} /g" "${file}" || return 1
-    done < <(find lua -type f -regex '.*\.lua$' -print0)
+    if [[ "$ET" == "noet" ]]; then
+        while IFS= read -r -d '' file; do
+            sed -i "s/\\set\\s/ ${ET} /g" "${file}" || return 1
+        done < <(find lua -type f -regex '.*\.lua$' -print0)
+    fi
 
     if _file_rw_not_empty './stylua.toml'; then
         if grep -E '^indent_type\s+=\s+.*$' ./stylua.toml &> /dev/null; then
