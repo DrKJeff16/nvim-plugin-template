@@ -1,4 +1,4 @@
-# nvim-plugin-boilerplate
+# nvim-plugin-boilerplate [![Mentioned in Awesome Neovim](https://awesome.re/mentioned-badge.svg)](https://github.com/rockerBOO/awesome-neovim)
 
 [Codeberg Mirror](https://codeberg.org/DrKJeff16/nvim-plugin-boilerplate) | [GitHub Mirror](https://github.com/DrKJeff16/nvim-plugin-boilerplate)
 
