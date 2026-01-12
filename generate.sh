@@ -23,7 +23,7 @@ _error() {
 }
 
 # Only print text if verbose mode is On
-verbose_print() {
+_verbose_print() {
     if [[ $VERBOSE -eq 0 ]]; then
         return 0
     fi
@@ -34,7 +34,7 @@ verbose_print() {
 }
 
 # Remove with verbose flag if `-v` was passed to script
-verbose_rm() {
+_verbose_rm() {
     if [[ $VERBOSE -eq 0 ]]; then
         rm -rf "$@" || return 1
         return 0
@@ -45,7 +45,7 @@ verbose_rm() {
 }
 
 # Kill the script execution with an exit status and optional messages
-die() {
+_die() {
     local EC=1
     if [[ $# -ge 1 ]] && [[ $1 =~ ^(0|-?[1-9][0-9]*)$ ]]; then
         EC="$1"
@@ -123,10 +123,10 @@ _usage() {
         "    -v             Enables verbose mode"
         ""
     )
-    die "$EC" "${TXT[@]}"
+    _die "$EC" "${TXT[@]}"
 }
 
-_cmd_exists 'find' || die 127 "\`find\` / \`sed\` / \`mv\` / \`rm\` not in PATH!"
+_cmd_exists 'find' || _die 127 "\`find\` / \`sed\` / \`mv\` / \`rm\` not in PATH!"
 
 # Check whether a given file exists, is readable and is writeable aswell
 _file_readable_writeable() {
@@ -372,12 +372,12 @@ _remove_stylua() {
         return 0
     fi
     if _file_readable_writeable "./stylua.toml"; then
-        verbose_print "Removing \`stylua.toml\`..." ""
-        verbose_rm ./stylua.toml || return 1
+        _verbose_print "Removing \`stylua.toml\`..." ""
+        _verbose_rm ./stylua.toml || return 1
     fi
     if _file_readable_writeable "./.github/workflows/stylua.yml"; then
-        verbose_print "Removing \`.github/workflows/stylua.yml\`..." ""
-        verbose_rm ./.github/workflows/stylua.yml || return 1
+        _verbose_print "Removing \`.github/workflows/stylua.yml\`..." ""
+        _verbose_rm ./.github/workflows/stylua.yml || return 1
     fi
     return 0
 }
@@ -388,16 +388,16 @@ _remove_selene() {
         return 0
     fi
     if _file_readable_writeable "./selene.toml"; then
-        verbose_print "Removing \`selene.toml\`..." ""
-        verbose_rm ./stylua.toml || return 1
+        _verbose_print "Removing \`selene.toml\`..." ""
+        _verbose_rm ./stylua.toml || return 1
     fi
     if _file_readable_writeable "./vim.yml"; then
-        verbose_print "Removing \`vim.yml\`..." ""
-        verbose_rm ./vim.yml || return 1
+        _verbose_print "Removing \`vim.yml\`..." ""
+        _verbose_rm ./vim.yml || return 1
     fi
     if _file_readable_writeable "./.github/workflows/selene.yml"; then
-        verbose_print "Removing \`.github/workflows/selene.yml\`..." ""
-        verbose_rm ./.github/workflows/selene.yml || return 1
+        _verbose_print "Removing \`.github/workflows/selene.yml\`..." ""
+        _verbose_rm ./.github/workflows/selene.yml || return 1
     fi
     return 0
 }
@@ -408,16 +408,16 @@ _remove_tests() {
         return 0
     fi
     if _file_readable_writeable "./.busted"; then
-        verbose_print "Removing busted config..."
-        verbose_rm ./.busted || return 1
+        _verbose_print "Removing busted config..."
+        _verbose_rm ./.busted || return 1
     fi
     if _file_readable_writeable "./Makefile"; then
-        verbose_print "Removing Makefile..."
-        verbose_rm ./Makefile || return 1
+        _verbose_print "Removing Makefile..."
+        _verbose_rm ./Makefile || return 1
     fi
     if [[ -d ./spec ]]; then
-        verbose_print "Removing tests..." ""
-        verbose_rm ./spec || return 1
+        _verbose_print "Removing tests..." ""
+        _verbose_rm ./spec || return 1
     fi
     return 0
 }
@@ -428,8 +428,8 @@ _remove_health_file() {
         return 0
     fi
     if _file_readable_writeable "./lua/${MODULE_NAME}/health.lua"; then
-        verbose_print "Removing \`health.lua\`..." ""
-        verbose_rm "./lua/${MODULE_NAME}/health.lua" || return 1
+        _verbose_print "Removing \`health.lua\`..." ""
+        _verbose_rm "./lua/${MODULE_NAME}/health.lua" || return 1
     fi
     return 0
 }
@@ -440,8 +440,8 @@ _remove_python_component() {
         return 0
     fi
     if _file_readable_writeable "./rplugin/python3/${MODULE_NAME}.py"; then
-        verbose_print "Removimg Python component..." ""
-        verbose_rm ./rplugin || return 1
+        _verbose_print "Removimg Python component..." ""
+        _verbose_rm ./rplugin || return 1
     fi
     return 0
 }
@@ -452,12 +452,12 @@ _remove_script() {
         return 1
     fi
     if ! _yn "Self-destruct this script? [Y/n]: " 1 "Y"; then
-        verbose_print "" "This script will need to be deleted again!"
+        _verbose_print "" "This script will need to be deleted again!"
         return 0
     fi
 
-    verbose_print "Removing this script...\n"
-    verbose_rm ./generate.sh || return 1
+    _verbose_print "Removing this script...\n"
+    _verbose_rm ./generate.sh || return 1
     return 0
 }
 
@@ -485,23 +485,23 @@ _rewrite_readme() {
 
 # Execute the script
 _main() {
-    _rename_module || die 1 "Couldn't rename module file structure!"
-    _rename_annotations || die 1 "Couldn't rename module annotations!"
+    _rename_module || _die 1 "Couldn't rename module file structure!"
+    _rename_annotations || _die 1 "Couldn't rename module annotations!"
 
-    _select_indentation || die 1 "Unable to set indentation!"
-    _select_line_size || die 1 "Unable to set StyLua line size!"
+    _select_indentation || _die 1 "Unable to set indentation!"
+    _select_line_size || _die 1 "Unable to set StyLua line size!"
 
-    _remove_tests || die 1 "Unable to (not) remove tests!"
-    _remove_health_file || die 1 "Unable to (not) remove health file!"
-    _remove_python_component || die 1 "Unable to (not) remove Python component!"
+    _remove_tests || _die 1 "Unable to (not) remove tests!"
+    _remove_health_file || _die 1 "Unable to (not) remove health file!"
+    _remove_python_component || _die 1 "Unable to (not) remove Python component!"
 
-    _remove_stylua || die 1 "Unable to (not) remove StyLua config!"
-    _remove_selene || die 1 "Unable to (not) remove selene config!"
+    _remove_stylua || _die 1 "Unable to (not) remove StyLua config!"
+    _remove_selene || _die 1 "Unable to (not) remove selene config!"
 
-    _rewrite_readme || die 1 "Unable to rewrite \`README.md\`!"
+    _rewrite_readme || _die 1 "Unable to rewrite \`README.md\`!"
 
-    _remove_script || die 1 "Unable to (not) remove this script!"
-    die 0
+    _remove_script || _die 1 "Unable to (not) remove this script!"
+    _die 0
 }
 
 while getopts "$OPTIONS" OPTION; do
