@@ -12,7 +12,7 @@ LINE_SIZE=""
 PLUGIN_NAME=""
 PLUGIN_DESCRIPTION=""
 
-OPTIONS=":v"
+OPTIONS=":hv"
 VERBOSE=0
 
 # Print all args to `stderr`
@@ -100,6 +100,30 @@ _cmd_exists() {
         unset I
     fi
     return 0
+}
+
+_usage() {
+    local EC=0
+    local TXT=()
+    if [[ $# -ge 1 ]] && [[ $1 =~ ^(0|-?[1-9][0-9]*)$ ]]; then
+        EC="$1"
+        shift
+    fi
+    if [[ $# -ge 1 ]]; then
+        TXT+=("$@")
+        TXT+=("")
+    fi
+
+    TXT+=(
+        "generate.sh - Generator script for \`nvim-plugin-boilerplate\`"
+        ""
+        "Usage: generate.sh [-h] [-v]"
+        ""
+        "    -h             Print this help message with success exit code"
+        "    -v             Enables verbose mode"
+        ""
+    )
+    die "$EC" "${TXT[@]}"
 }
 
 _cmd_exists 'find' || die 127 "\`find\` / \`sed\` / \`mv\` / \`rm\` not in PATH!"
@@ -432,7 +456,7 @@ _remove_script() {
         return 0
     fi
 
-    verbose_print "Removing this script..." ""
+    verbose_print "Removing this script...\n"
     verbose_rm ./generate.sh || return 1
     return 0
 }
@@ -483,6 +507,10 @@ _main() {
 while getopts "$OPTIONS" OPTION; do
     case "$OPTION" in
         v) VERBOSE=1 ;;
+        h) _usage 0 ;;
+        :) _usage 1 "Missing argument for option \`${OPTION}\`" ;;
+        ?) _usage 1 "Invalid option!" ;;
+        *) _usage 1 ;;
     esac
 done
 
