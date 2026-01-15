@@ -483,6 +483,12 @@ _rewrite_readme() {
     return 0
 }
 
+_remove_ci() {
+    ! [[ -d ./.github ]] && return 0
+    _verbose_rm ./.github/{CODEOWNERS,FUNDING.yml}
+    return $?
+}
+
 # Execute the script
 _main() {
     _rename_module || _die 1 "Couldn't rename module file structure!"
@@ -497,6 +503,8 @@ _main() {
 
     _remove_stylua || _die 1 "Unable to (not) remove StyLua config!"
     _remove_selene || _die 1 "Unable to (not) remove selene config!"
+
+    _remove_ci || _die 1 "Unable to remove useless CI components!"
 
     _rewrite_readme || _die 1 "Unable to rewrite \`README.md\`!"
 
