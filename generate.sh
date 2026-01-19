@@ -485,7 +485,7 @@ _rewrite_readme() {
 
 _remove_ci() {
     ! [[ -d ./.github ]] && return 0
-    _verbose_rm ./.github/{CODEOWNERS,FUNDING.yml}
+    _verbose_rm ./.github/{CODEOWNERS,FUNDING.yml,workflows/vim-eof-comment.yml}
     return $?
 }
 
