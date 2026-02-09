@@ -145,11 +145,17 @@ end
 ---Checks if a given number is type integer.
 --- ---
 ---@param num number
+---@param cond? boolean
 ---@return boolean int
-function M.is_int(num)
-  M.validate({ num = { num, { 'number' } } })
+function M.is_int(num, cond)
+  M.validate({
+    num = { num, { 'number' } },
+    cond = { cond, { 'boolean', 'nil' }, true },
+  })
+  cond = cond ~= nil and cond or true
 
-  return math.floor(num) == num and math.ceil(num) == num
+  local is_int = math.floor(num) == num and math.ceil(num) == num
+  return is_int and cond
 end
 
 ---Checks whether `data` is of type `t` or not.
