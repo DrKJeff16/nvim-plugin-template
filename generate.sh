@@ -483,6 +483,62 @@ _rewrite_readme() {
     return 0
 }
 
+_replace_license() {
+    ! _cmd_exists 'gh' && return 0
+
+    printf "%s\n" \
+        "Changing license will use the GitHub CLI (\`gh\`)." \
+        "All operations will be verbose for transparency." \
+        ""
+
+    _yn "Do you wish to use a different license? [y/N]: " 1 "N" || return 0
+    if ! gh extension list | grep "mislav/gh-license" &> /dev/null; then
+        printf "%s\n" \
+            "This operation requires the \`gh\` extension \`mislav/gh-license\` to be installed."
+
+        _yn "Do you wish to install it? [Y/n]: " 1 "Y" || return 0
+        gh extension install "mislav/gh-license" || return 1
+    fi
+
+    printf "%s\n" \
+        "" \
+        "agpl-3.0" \
+        "apache-2.0" \
+        "bsd-2-clause" \
+        "bsd-3-clause" \
+        "bsl-1.0" \
+        "cc0-1.0" \
+        "epl-2.0" \
+        "gpl-2.0" \
+        "gpl-3.0" \
+        "lgpl-2.1" \
+        "mit" \
+        "mpl-2.0" \
+        "unlicense"
+
+    _prompt_data "Choose one of the licenses listed above (case-sensitive): " 1
+    case "${DATA}" in
+        "agpl-3.0") LICENSE="agpl-3.0" ;;
+        "apache-2.0") LICENSE="apache-2.0" ;;
+        "bsd-2-clause") LICENSE="bsd-2-clause" ;;
+        "bsd-3-clause") LICENSE="bsd-2-clause" ;;
+        "bsl-1.0") LICENSE="bsl-1.0" ;;
+        "cc0-1.0") LICENSE="" ;;
+        "epl-2.0") LICENSE="" ;;
+        "gpl-2.0") LICENSE="" ;;
+        "gpl-3.0") LICENSE="" ;;
+        "lgpl-2.1") LICENSE="" ;;
+        "mit") LICENSE="" ;;
+        "mpl-2.0") LICENSE="" ;;
+        "unlicense") LICENSE="" ;;
+        *) return 0 ;;
+    esac
+
+    rm -f ./LICENSE
+    gh license "${LICENSE}" || return 1
+    return 0
+}
+
 _remove_ci() {
     ! [[ -d ./.github ]] && return 0
 
@@ -511,6 +567,7 @@ _main() {
     _remove_stylua || _die 1 "Unable to (not) remove StyLua config!"
     _remove_selene || _die 1 "Unable to (not) remove selene config!"
 
+    _replace_license || _die 1 "Unable to replace license!"
     _remove_ci || _die 1 "Unable to remove useless CI components!"
 
     _rewrite_readme || _die 1 "Unable to rewrite \`README.md\`!"
