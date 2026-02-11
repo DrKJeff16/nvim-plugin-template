@@ -485,7 +485,14 @@ _rewrite_readme() {
 
 _remove_ci() {
     ! [[ -d ./.github ]] && return 0
-    _verbose_rm ./.github/{CODEOWNERS,FUNDING.yml,workflows/vim-eof-comment.yml}
+
+    _yn "Remove CODEOWNERS file? [Y/n]: " 1 "Y" \
+        && _verbose_rm ./.github/CODEOWNERS
+
+    _yn "Remove vim-eof-comment GitHub Action? [Y/n]: " 1 "Y" \
+        && _verbose_rm ./.github/workflows/vim-eof-comment.yml
+
+    _verbose_rm ./.github/FUNDING.yml
     return $?
 }
 
