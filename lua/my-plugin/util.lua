@@ -58,7 +58,7 @@ end
 --- ---
 ---@param T table<string, vim.validate.Spec|ValidateSpec>
 function M.validate(T)
-  local max = M.vim_has('nvim-0.11') and 3 or 4
+  local max = vim.fn.has('nvim-0.11') == 1 and 3 or 4
   for name, spec in pairs(T) do
     while #spec > max do
       table.remove(spec, #spec)
@@ -66,15 +66,15 @@ function M.validate(T)
     T[name] = spec
   end
 
-  if M.vim_has('nvim-0.11') then
-    for name, spec in pairs(T) do
-      table.insert(spec, 1, name)
-      vim.validate(unpack(spec))
-    end
+  if vim.fn.has('nvim-0.11') ~= 1 then
+    vim.validate(T)
     return
   end
 
-  vim.validate(T)
+  for name, spec in pairs(T) do
+    table.insert(spec, 1, name)
+    vim.validate(unpack(spec))
+  end
 end
 
 ---@param T table<string|integer, any>
