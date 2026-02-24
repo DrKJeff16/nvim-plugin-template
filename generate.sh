@@ -523,14 +523,14 @@ _replace_license() {
         "bsd-2-clause") LICENSE="bsd-2-clause" ;;
         "bsd-3-clause") LICENSE="bsd-2-clause" ;;
         "bsl-1.0") LICENSE="bsl-1.0" ;;
-        "cc0-1.0") LICENSE="" ;;
-        "epl-2.0") LICENSE="" ;;
-        "gpl-2.0") LICENSE="" ;;
-        "gpl-3.0") LICENSE="" ;;
-        "lgpl-2.1") LICENSE="" ;;
-        "mit") LICENSE="" ;;
-        "mpl-2.0") LICENSE="" ;;
-        "unlicense") LICENSE="" ;;
+        "cc0-1.0") LICENSE="cc0-1.0" ;;
+        "epl-2.0") LICENSE="epl-2.0" ;;
+        "gpl-2.0") LICENSE="gpl-2.0" ;;
+        "gpl-3.0") LICENSE="gpl-3.0" ;;
+        "lgpl-2.1") LICENSE="lgpl-2.1" ;;
+        "mit") LICENSE="mit" ;;
+        "mpl-2.0") LICENSE="mpl-2.0" ;;
+        "unlicense") LICENSE="unlicense" ;;
         *) return 0 ;;
     esac
 
