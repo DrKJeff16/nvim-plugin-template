@@ -126,7 +126,7 @@ _usage() {
     _die "$EC" "${TXT[@]}"
 }
 
-_cmd_exists 'find' || _die 127 "\`find\` / \`sed\` / \`mv\` / \`rm\` not in PATH!"
+_cmd_exists 'find' 'sed' 'mv' 'rm' || _die 127 "\`find\` / \`sed\` / \`mv\` / \`rm\` not in PATH!"
 
 # Check whether a given file exists, is readable and is writeable aswell
 _file_readable_writeable() {
@@ -424,7 +424,7 @@ _remove_tests() {
 
 # Prompt to remove the `checkhealth` file
 _remove_health_file() {
-    if ! _yn "Remove the checkhealth file? [y/N]: " 1 "N"; then
+    if ! _yn "Remove the checkhealth file? [Y/n]: " 1 "Y"; then
         return 0
     fi
     if _file_readable_writeable "./lua/${MODULE_NAME}/health.lua"; then
@@ -542,11 +542,17 @@ _replace_license() {
 _remove_ci() {
     ! [[ -d ./.github ]] && return 0
 
-    _yn "Remove CODEOWNERS file? [Y/n]: " 1 "Y" \
-        && _verbose_rm ./.github/CODEOWNERS
+    if [[ -f ./.github/CODEOWNERS ]]; then
+        _yn "Remove CODEOWNERS file? [Y/n]: " 1 "Y" \
+            && _verbose_rm ./.github/CODEOWNERS
 
-    _yn "Remove vim-eof-comment GitHub Action? [Y/n]: " 1 "Y" \
-        && _verbose_rm ./.github/workflows/vim-eof-comment.yml
+    fi
+
+    if [[ -f ./.github/workflows/vim-eof-comment.yml ]]; then
+        _yn "Remove vim-eof-comment GitHub Action? [Y/n]: " 1 "Y" \
+            && _verbose_rm ./.github/workflows/vim-eof-comment.yml
+
+    fi
 
     _verbose_rm ./.github/FUNDING.yml
     return $?
